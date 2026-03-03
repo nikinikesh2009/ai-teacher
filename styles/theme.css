@@ -1,0 +1,17 @@
+ :root {
+   --color-bg-app: #F1F5F9;
+   --color-surface: #FFFFFF;
+   --color-surface-alt: #F8FAFC;
+   --color-border: #E2E8F0;
+   --color-primary: #2563EB;
+   --color-accent: #2563EB;
+   --color-primary-hover: #1D4ED8;
+   --color-text-main: #0F172A;
+   --color-text-sub: #475569;
+   --color-danger: #DC2626;
+   --shadow-soft: 0 10px 25px rgba(0, 0, 0, 0.05);
+   --radius-md: 12px;
+   --radius-lg: 20px;
+   --transition-fast: 200ms ease-in-out;
+   --transition-medium: 250ms ease-in-out;
+ }
