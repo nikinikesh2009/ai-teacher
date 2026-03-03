@@ -2,16 +2,16 @@
 
 const PANEL_LABELS: Record<string, string> = {
   settings: "Settings",
-  student: "Student",
-  resources: "Resources",
-  analytics: "Analytics",
-  pins: "Pins",
+  tutor: "Tutor",
+  flashcards: "Flashcards",
+  flowchart: "Flowchart",
+  keypoints: "Key Points",
   help: "Help",
-  notes: "Notes",
-  view: "View",
+  exam: "Exam",
+  hide: "Hide Panel",
 };
 
-export default function SidePanel({
+export default function SlidePanel({
   activePanel,
   onClose,
   onOverlayClick,
@@ -26,7 +26,7 @@ export default function SidePanel({
     <>
       <div
         onClick={onOverlayClick}
-        className={`absolute inset-0 bg-black/20 z-20 transition-opacity duration-[250ms] ${
+        className={`fixed inset-0 bg-black/30 z-20 transition-opacity duration-[250ms] ease-in-out ${
           isOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
         }`}
       />
@@ -38,12 +38,12 @@ export default function SidePanel({
       >
         <div className="flex items-center justify-between p-4 border-b border-[var(--color-border)]">
           <h2 className="text-base font-semibold text-[var(--color-text-main)]">
-            {activePanel ? PANEL_LABELS[activePanel] || "Panel" : ""}
+            {activePanel ? PANEL_LABELS[activePanel] ?? "Panel" : ""}
           </h2>
           <button
             type="button"
             onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center rounded-lg text-[var(--color-text-sub)] hover:bg-[var(--color-border)]/50 transition-colors duration-200"
+            className="w-8 h-8 flex items-center justify-center rounded-md text-[var(--color-text-sub)] hover:bg-[var(--color-border)]/50 transition-colors"
           >
             ✕
           </button>
@@ -51,7 +51,7 @@ export default function SidePanel({
         <div className="flex-1 p-4 overflow-auto">
           <p className="text-sm text-[var(--color-text-sub)]">
             {activePanel
-              ? `Content placeholder for ${PANEL_LABELS[activePanel] || activePanel} panel.`
+              ? `Content placeholder for ${PANEL_LABELS[activePanel] ?? activePanel} panel.`
               : ""}
           </p>
         </div>

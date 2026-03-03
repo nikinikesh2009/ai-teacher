@@ -1,32 +1,187 @@
 "use client";
 
-const BUTTONS = [
-  { id: "prev", emoji: "⬅" },
-  { id: "play", emoji: "▶" },
-  { id: "reset", emoji: "🔁" },
-  { id: "help", emoji: "❓" },
-  { id: "notes", emoji: "📝" },
-  { id: "tags", emoji: "🏷" },
+import { useState } from "react";
+import type { ReactNode } from "react";
+
+type HandlerKey = "onBack" | "onReplay" | "onAsk" | "onNotes" | "onTag" | "onPause" | "onNext";
+
+interface BottomControlsProps {
+  visible?: boolean;
+  onToggle?: () => void;
+  onBack?: () => void;
+  onReplay?: () => void;
+  onAsk?: () => void;
+  onNotes?: () => void;
+  onTag?: () => void;
+  onPause?: () => void;
+  onNext?: () => void;
+}
+
+const ICONS: Record<string, ReactNode> = {
+  back: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M19 12H5M12 19l-7-7 7-7" />
+    </svg>
+  ),
+  replay: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+      <path d="M3 3v5h5" />
+    </svg>
+  ),
+  ask: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10" />
+      <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+      <path d="M12 17h.01" />
+    </svg>
+  ),
+  notes: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M16 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8z" />
+      <path d="M15 3v4a2 2 0 0 0 2 2h4" />
+      <path d="M8 13h4" />
+      <path d="M8 17h8" />
+    </svg>
+  ),
+  tag: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2z" />
+      <circle cx="7" cy="7" r="1.5" />
+    </svg>
+  ),
+  pause: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="6" y="4" width="4" height="16" />
+      <rect x="14" y="4" width="4" height="16" />
+    </svg>
+  ),
+  play: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <polygon points="5 3 19 12 5 21 5 3" />
+    </svg>
+  ),
+  next: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M5 12h14M12 5l7 7-7 7" />
+    </svg>
+  ),
+};
+
+const LEFT_BUTTONS: { id: HandlerKey; iconKey: string; label: string }[] = [
+  { id: "onBack", iconKey: "back", label: "Back" },
+  { id: "onReplay", iconKey: "replay", label: "Replay" },
+  { id: "onAsk", iconKey: "ask", label: "Ask" },
 ];
 
-export default function BottomControls() {
-  return (
-    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10">
-      <div
-        className="flex items-center gap-1 px-2 py-1.5 rounded-full bg-[var(--color-surface)] border border-[var(--color-border)] shadow-[var(--shadow-soft)]"
-        style={{ transition: "var(--transition-fast)" }}
-      >
-        {BUTTONS.map(({ id, emoji }) => (
-          <button
-            key={id}
-            type="button"
-            onClick={() => console.log(`BottomControls: ${id}`)}
-            className="w-9 h-9 flex items-center justify-center rounded-full text-lg hover:bg-[var(--color-border)]/50 transition-colors duration-200"
-          >
-            {emoji}
-          </button>
-        ))}
+const RIGHT_BUTTONS: { id: HandlerKey; iconKey: string; label: string }[] = [
+  { id: "onNotes", iconKey: "notes", label: "Notes" },
+  { id: "onTag", iconKey: "tag", label: "Tag" },
+  { id: "onNext", iconKey: "next", label: "Next" },
+];
+
+export default function BottomControls({
+  visible = true,
+  onToggle,
+  onBack,
+  onReplay,
+  onAsk,
+  onNotes,
+  onTag,
+  onPause,
+  onNext,
+}: BottomControlsProps) {
+  const [isPaused, setIsPaused] = useState(false);
+  const [isBursting, setIsBursting] = useState(false);
+  const handlers = { onBack, onReplay, onAsk, onNotes, onTag, onPause, onNext };
+
+  const handlePause = () => {
+    setIsPaused((v) => !v);
+    setIsBursting(true);
+    onPause?.();
+    setTimeout(() => setIsBursting(false), 400);
+  };
+
+  const renderButton = (
+    id: HandlerKey,
+    iconKey: string,
+    label: string,
+  ) => (
+    <button
+      key={id}
+      type="button"
+      onClick={() => handlers[id]?.()}
+      title={label}
+      className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-full text-blue-600 bg-blue-50/80 hover:bg-blue-100 hover:text-blue-700 active:scale-95 shadow-md hover:shadow-lg active:shadow-sm transition-all duration-300 ease-out [&>svg]:w-4 [&>svg]:h-4 sm:[&>svg]:w-[18px] sm:[&>svg]:h-[18px]"
+    >
+      {ICONS[iconKey]}
+    </button>
+  );
+
+  const bottomPadding = "pb-[max(0.75rem,env(safe-area-inset-bottom,0.75rem))] sm:pb-4";
+
+  if (!visible) {
+    return (
+      <div className={`absolute inset-x-0 bottom-0 z-10 flex justify-center ${bottomPadding} px-2 sm:px-4 md:px-6`}>
+        <button
+          type="button"
+          onClick={onToggle}
+          title="Show controls"
+          className="flex items-center gap-2 px-4 py-2 rounded-full border border-white/30 bg-white/60 backdrop-blur-xl shadow-md hover:shadow-lg text-[var(--color-text-sub)] hover:text-[var(--color-text-main)] transition-all duration-300 animate-[slideInUp_0.3s_ease-out_forwards]"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M18 15l-6-6-6 6" />
+          </svg>
+          <span className="text-sm font-medium">Show controls</span>
+        </button>
       </div>
+    );
+  }
+
+  return (
+    <div className={`absolute inset-x-0 bottom-0 z-10 flex flex-col items-center ${bottomPadding} px-3 sm:px-6`}>
+      <nav className="flex items-center justify-evenly w-full max-w-[min(576px,92vw)] px-3 py-2.5 sm:px-6 sm:py-3 rounded-full border border-white/30 bg-white/60 backdrop-blur-xl shadow-[0_-4px_20px_rgba(0,0,0,0.06),0_4px_16px_rgba(0,0,0,0.08)] animate-[slideInUp_0.3s_ease-out_forwards]">
+        {LEFT_BUTTONS.map(({ id, iconKey, label }) =>
+          renderButton(id, iconKey, label),
+        )}
+        <button
+          type="button"
+          onClick={handlePause}
+          title={isPaused ? "Play" : "Pause"}
+          className={`relative overflow-visible w-10 h-10 sm:w-12 sm:h-12 flex-shrink-0 flex items-center justify-center rounded-full text-white shadow-lg hover:shadow-xl active:scale-95 transition-all duration-300 ease-out [&>svg]:w-4 [&>svg]:h-4 sm:[&>svg]:w-[18px] sm:[&>svg]:h-[18px] ${
+            isPaused
+              ? "bg-red-500 hover:bg-red-600"
+              : "bg-green-500 hover:bg-green-600"
+          }`}
+        >
+          {isBursting && (
+            <span
+              className="absolute inset-0 rounded-full animate-[burst_0.4s_ease-out_forwards] pointer-events-none"
+              style={{
+                background: isPaused
+                  ? "radial-gradient(circle, rgba(239,68,68,0.6) 0%, transparent 70%)"
+                  : "radial-gradient(circle, rgba(34,197,94,0.6) 0%, transparent 70%)",
+              }}
+            />
+          )}
+          <span className="relative z-10">{isPaused ? ICONS.play : ICONS.pause}</span>
+        </button>
+        {RIGHT_BUTTONS.map(({ id, iconKey, label }) =>
+          renderButton(id, iconKey, label),
+        )}
+      </nav>
+      {onToggle && (
+        <button
+          type="button"
+          onClick={onToggle}
+          title="Hide controls"
+          className="mt-2 w-8 h-8 flex items-center justify-center rounded-full text-[var(--color-text-sub)] hover:bg-white/60 hover:text-[var(--color-text-main)] transition-all duration-300 animate-[fadeInUp_0.25s_ease-out_forwards]"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M6 9l6 6 6-6" />
+          </svg>
+        </button>
+      )}
     </div>
   );
 }
