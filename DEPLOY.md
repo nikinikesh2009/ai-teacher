@@ -35,6 +35,18 @@ After this, every push to `main` will auto-deploy to production.
 - `npm run vercel:env` – Push env vars from .env.local to Vercel (run once or when env changes)
 - `npm run deploy` – Deploy manually (or just `git push` after GitHub is connected)
 
+## Admin panel
+1. Create admin tables: `npm run admin:setup` (or `npx tsx scripts/setup-admin-db.ts`).
+2. Create first admin: `npx tsx scripts/seed-admin.ts your@email.com YourPassword`.
+3. Open **`/admin/login`**, sign in, then use **`/admin`** for the dashboard.
+
+### Default admin credentials (already seeded)
+| Field    | Value                |
+|----------|----------------------|
+| **URL**  | `/admin/login`       |
+| **Email**| `admin@tutorflow.local` |
+| **Password** | `AdminPass123!` |
+
 ## Environment Variables (Vercel)
 Set in [Vercel Project Settings](https://vercel.com/nikils-projects-d73bb2bb/tutorflow/settings/environment-variables):
 - `DATABASE_URL` – Neon connection string

@@ -1,14 +1,17 @@
-export default function AdminPage() {
+import { AdminDashboardClient } from "./AdminDashboardClient";
+
+export default function AdminDashboardPage() {
   return (
-    <main className="py-16">
-      <section className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-8 shadow-[var(--shadow-soft)]">
-        <h1 className="text-2xl font-semibold tracking-tight text-[var(--color-text-main)]">
-          Admin
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
+          Dashboard
         </h1>
-        <p className="mt-2 text-sm text-[var(--color-text-sub)]">
-          Placeholder for TutorFlow admin tools and configuration.
+        <p className="mt-1 text-sm text-slate-500">
+          Platform overview and key metrics
         </p>
-      </section>
-    </main>
+      </div>
+      <AdminDashboardClient />
+    </div>
   );
 }

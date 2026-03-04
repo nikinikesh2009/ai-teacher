@@ -3,18 +3,21 @@
 import { useState } from "react";
 import type { ReactNode } from "react";
 
-type HandlerKey = "onBack" | "onReplay" | "onAsk" | "onNotes" | "onTag" | "onPause" | "onNext";
+type HandlerKey = "onBack" | "onReplay" | "onDiscuss" | "onNotes" | "onTag" | "onPause" | "onNext";
 
 interface BottomControlsProps {
   visible?: boolean;
   onToggle?: () => void;
   onBack?: () => void;
   onReplay?: () => void;
-  onAsk?: () => void;
+  onDiscuss?: () => void;
+  discussionMode?: boolean;
   onNotes?: () => void;
   onTag?: () => void;
   onPause?: () => void;
   onNext?: () => void;
+  currentStep?: number;
+  stepsCount?: number;
 }
 
 const ICONS: Record<string, ReactNode> = {
@@ -29,11 +32,9 @@ const ICONS: Record<string, ReactNode> = {
       <path d="M3 3v5h5" />
     </svg>
   ),
-  ask: (
+  discuss: (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="10" />
-      <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
-      <path d="M12 17h.01" />
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
     </svg>
   ),
   notes: (
@@ -71,7 +72,7 @@ const ICONS: Record<string, ReactNode> = {
 const LEFT_BUTTONS: { id: HandlerKey; iconKey: string; label: string }[] = [
   { id: "onBack", iconKey: "back", label: "Back" },
   { id: "onReplay", iconKey: "replay", label: "Replay" },
-  { id: "onAsk", iconKey: "ask", label: "Ask" },
+  { id: "onDiscuss", iconKey: "discuss", label: "Discuss" },
 ];
 
 const RIGHT_BUTTONS: { id: HandlerKey; iconKey: string; label: string }[] = [
@@ -85,15 +86,20 @@ export default function BottomControls({
   onToggle,
   onBack,
   onReplay,
-  onAsk,
+  onDiscuss,
+  discussionMode = false,
   onNotes,
   onTag,
   onPause,
   onNext,
+  currentStep = 0,
+  stepsCount = 1,
 }: BottomControlsProps) {
   const [isPaused, setIsPaused] = useState(false);
   const [isBursting, setIsBursting] = useState(false);
-  const handlers = { onBack, onReplay, onAsk, onNotes, onTag, onPause, onNext };
+  const handlers = { onBack, onReplay, onDiscuss, onNotes, onTag, onPause, onNext };
+  const canGoBack = stepsCount > 0 && currentStep > 0;
+  const canGoNext = stepsCount > 0 && currentStep < stepsCount - 1;
 
   const handlePause = () => {
     setIsPaused((v) => !v);
@@ -106,17 +112,41 @@ export default function BottomControls({
     id: HandlerKey,
     iconKey: string,
     label: string,
-  ) => (
-    <button
-      key={id}
-      type="button"
-      onClick={() => handlers[id]?.()}
-      title={label}
-      className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-full text-blue-600 bg-blue-50/80 hover:bg-blue-100 hover:text-blue-700 active:scale-95 shadow-md hover:shadow-lg active:shadow-sm transition-all duration-300 ease-out [&>svg]:w-4 [&>svg]:h-4 sm:[&>svg]:w-[18px] sm:[&>svg]:h-[18px]"
-    >
-      {ICONS[iconKey]}
-    </button>
-  );
+    isDiscuss = false,
+    disabled = false,
+  ) => {
+    const disabledStyles = "disabled:opacity-45 disabled:pointer-events-none disabled:cursor-not-allowed";
+    if (isDiscuss) {
+      return (
+        <button
+          key={id}
+          type="button"
+          onClick={() => !disabled && handlers[id]?.()}
+          title={label}
+          disabled={disabled}
+          className={`w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-full active:scale-95 shadow-md hover:shadow-lg active:shadow-sm transition-all duration-300 ease-out [&>svg]:w-4 [&>svg]:h-4 sm:[&>svg]:w-[18px] sm:[&>svg]:h-[18px] ${disabledStyles} ${
+            discussionMode
+              ? "bg-green-500 text-white hover:bg-green-600"
+              : "text-gray-500 bg-gray-100 hover:bg-gray-200 hover:text-gray-600"
+          }`}
+        >
+          {ICONS[iconKey]}
+        </button>
+      );
+    }
+    return (
+      <button
+        key={id}
+        type="button"
+        onClick={() => !disabled && handlers[id]?.()}
+        title={label}
+        disabled={disabled}
+        className={`w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-full text-blue-600 bg-blue-50/80 hover:bg-blue-100 hover:text-blue-700 active:scale-95 shadow-md hover:shadow-lg active:shadow-sm transition-all duration-300 ease-out [&>svg]:w-4 [&>svg]:h-4 sm:[&>svg]:w-[18px] sm:[&>svg]:h-[18px] ${disabledStyles}`}
+      >
+        {ICONS[iconKey]}
+      </button>
+    );
+  };
 
   const bottomPadding = "pb-[max(0.75rem,env(safe-area-inset-bottom,0.75rem))] sm:pb-4";
 
@@ -142,7 +172,7 @@ export default function BottomControls({
     <div className={`absolute inset-x-0 bottom-0 z-10 flex flex-col items-center ${bottomPadding} px-3 sm:px-6`}>
       <nav className="flex items-center justify-evenly w-full max-w-[min(576px,92vw)] px-3 py-2.5 sm:px-6 sm:py-3 rounded-full border border-white/30 bg-white/60 backdrop-blur-xl shadow-[0_-4px_20px_rgba(0,0,0,0.06),0_4px_16px_rgba(0,0,0,0.08)] animate-[slideInUp_0.3s_ease-out_forwards]">
         {LEFT_BUTTONS.map(({ id, iconKey, label }) =>
-          renderButton(id, iconKey, label),
+          renderButton(id, iconKey, label, id === "onDiscuss", id === "onBack" ? !canGoBack : false),
         )}
         <button
           type="button"
@@ -167,7 +197,7 @@ export default function BottomControls({
           <span className="relative z-10">{isPaused ? ICONS.play : ICONS.pause}</span>
         </button>
         {RIGHT_BUTTONS.map(({ id, iconKey, label }) =>
-          renderButton(id, iconKey, label),
+          renderButton(id, iconKey, label, false, id === "onNext" ? !canGoNext : false),
         )}
       </nav>
       {onToggle && (

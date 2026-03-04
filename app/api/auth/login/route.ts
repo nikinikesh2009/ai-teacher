@@ -2,6 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@/lib/db";
 import { comparePassword, generateToken } from "@/lib/auth";
 
+async function ensureUserStatusColumn() {
+  await sql`
+    ALTER TABLE users
+    ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'Active'
+  `;
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -16,8 +23,10 @@ export async function POST(request: NextRequest) {
 
     const trimmedEmail = String(email).trim().toLowerCase();
 
+    await ensureUserStatusColumn();
+
     const rows = await sql`
-      SELECT id, email, password_hash FROM users
+      SELECT id, email, password_hash, status FROM users
       WHERE email = ${trimmedEmail}
       LIMIT 1
     `;
@@ -29,13 +38,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const user = rows[0] as { id: string; email: string; password_hash: string };
+    const user = rows[0] as { id: string; email: string; password_hash: string; status?: string | null };
     const isValid = await comparePassword(password, user.password_hash);
 
     if (!isValid) {
       return NextResponse.json(
         { error: "Invalid email or password" },
         { status: 401 }
+      );
+    }
+
+    if (user.status === "Suspended") {
+      return NextResponse.json(
+        { error: "Your account is suspended. Please contact support." },
+        { status: 403 }
       );
     }
 

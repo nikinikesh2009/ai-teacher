@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import "../styles/theme.css";
+import { AdminLayoutWrapper } from "@/components/admin/AdminLayoutWrapper";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -37,9 +38,7 @@ export default function RootLayout({
       <body
         className={`${inter.variable} antialiased bg-[var(--color-bg-app)] text-[var(--color-text-main)]`}
       >
-        <div className="flex min-h-screen items-center justify-center px-4">
-          <div className="w-full max-w-5xl">{children}</div>
-        </div>
+        <AdminLayoutWrapper>{children}</AdminLayoutWrapper>
       </body>
     </html>
   );

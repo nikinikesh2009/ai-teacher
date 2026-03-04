@@ -5,9 +5,15 @@ import Link from "next/link";
 export default function TopBar({
   onToolbarToggle,
   toolbarOpen,
+  title,
+  stepIndicator,
+  onNewLesson,
 }: {
   onToolbarToggle: () => void;
   toolbarOpen: boolean;
+  title?: string;
+  stepIndicator?: string;
+  onNewLesson?: () => void;
 }) {
   return (
     <header className="h-[clamp(3rem,8vh,60px)] flex-shrink-0 flex items-center justify-between px-3 sm:px-4 md:px-6 gap-2 bg-[var(--color-surface)] border-b border-[var(--color-border)] shadow-[0_1px_0_rgba(0,0,0,0.04)]">
@@ -23,13 +29,25 @@ export default function TopBar({
 
       <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1 justify-center">
         <span className="text-[13px] sm:text-[15px] font-semibold text-[var(--color-text-main)] truncate">
-          Lesson Title
+          {title ?? "Lesson Title"}
         </span>
-        <span className="flex-shrink-0 px-2 py-0.5 text-[12px] sm:text-[13px] font-medium text-[var(--color-text-sub)] bg-[var(--color-border)]/50 rounded-md">
-          Step 1 / 5
-        </span>
+        {stepIndicator != null && (
+          <span className="flex-shrink-0 px-2 py-0.5 text-[12px] sm:text-[13px] font-medium text-[var(--color-text-sub)] bg-[var(--color-border)]/50 rounded-md">
+            {stepIndicator}
+          </span>
+        )}
       </div>
 
+      <div className="flex items-center gap-2 flex-shrink-0">
+        {onNewLesson && (
+          <button
+            type="button"
+            onClick={onNewLesson}
+            className="px-3 py-1.5 text-[12px] sm:text-[13px] font-medium rounded-lg border border-[var(--color-border)] text-[var(--color-text-sub)] hover:bg-[var(--color-border)]/40 hover:text-[var(--color-text-main)] transition-colors"
+          >
+            New lesson
+          </button>
+        )}
       <button
         type="button"
         onClick={onToolbarToggle}
@@ -44,6 +62,7 @@ export default function TopBar({
         </svg>
         <span className="hidden sm:inline">Toolkit</span>
       </button>
+      </div>
     </header>
   );
 }
