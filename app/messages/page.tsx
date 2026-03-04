@@ -7,6 +7,7 @@ import {
   getConversationsForUser,
   getMessagesForConversation,
   getOrCreateConversation,
+  type ConversationMessage,
 } from "@/lib/social";
 
 type MessagesPageProps = {
@@ -58,7 +59,7 @@ export default async function MessagesPage({ searchParams }: MessagesPageProps) 
 
   const conversations = await getConversationsForUser(currentUserId);
 
-  let initialMessages = [];
+  let initialMessages: ConversationMessage[] = [];
   let activeOtherUsername: string | undefined;
 
   if (selectedConversationId) {
