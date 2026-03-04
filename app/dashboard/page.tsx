@@ -6,6 +6,16 @@ import { StartLearningPanel } from "@/components/dashboard/StartLearningPanel";
 import { ContinueLearning, ContinueLesson } from "@/components/dashboard/ContinueLearning";
 import { LearningTools } from "@/components/dashboard/LearningTools";
 import { ProgressOverview } from "@/components/dashboard/ProgressOverview";
+import { UserCard } from "@/components/users/UserCard";
+import { UserMoment } from "@/components/users/UserMoment";
+import { MomentComposer } from "@/components/users/MomentComposer";
+import { BottomNav } from "@/components/dashboard/BottomNav";
+import {
+  getDiscoveryForUser,
+  getRecentMoments,
+  type UserSummary,
+  type MomentSummary,
+} from "@/lib/social";
 
 type DashboardStats = {
   lessonsCompleted: number;
@@ -14,10 +24,15 @@ type DashboardStats = {
   learningStreakDays: number;
 };
 
+type DashboardUserSummary = UserSummary;
+type DashboardMoment = MomentSummary;
+
 type DashboardData = {
   studentName: string;
   continueLessons: ContinueLesson[];
   stats: DashboardStats;
+  discoveryUsers: DashboardUserSummary[];
+  recentMoments: DashboardMoment[];
 };
 
 async function getDashboardData(): Promise<DashboardData> {
@@ -35,6 +50,8 @@ async function getDashboardData(): Promise<DashboardData> {
         studyTimeThisWeek: "0 min",
         learningStreakDays: 0,
       },
+      discoveryUsers: [],
+      recentMoments: [],
     };
   }
 
@@ -49,6 +66,8 @@ async function getDashboardData(): Promise<DashboardData> {
         studyTimeThisWeek: "0 min",
         learningStreakDays: 0,
       },
+      discoveryUsers: [],
+      recentMoments: [],
     };
   }
 
@@ -74,6 +93,8 @@ async function getDashboardData(): Promise<DashboardData> {
         studyTimeThisWeek: "0 min",
         learningStreakDays: 0,
       },
+      discoveryUsers: [],
+      recentMoments: [],
     };
   }
 
@@ -144,10 +165,22 @@ async function getDashboardData(): Promise<DashboardData> {
     learningStreakDays: activeDays,
   };
 
+  let discoveryUsers: DashboardUserSummary[] = [];
+  let recentMoments: DashboardMoment[] = [];
+
+  try {
+    discoveryUsers = await getDiscoveryForUser(userId);
+    recentMoments = await getRecentMoments(10);
+  } catch (err) {
+    console.error("Dashboard social data error:", err);
+  }
+
   return {
     studentName,
     continueLessons,
     stats,
+    discoveryUsers,
+    recentMoments,
   };
 }
 
@@ -158,7 +191,7 @@ export default async function DashboardPage() {
     <div className="min-h-screen bg-gray-50">
       <DashboardHeader studentName={data.studentName} />
 
-      <main className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+      <main className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-6 pb-24 sm:px-6 lg:px-8 lg:py-8 lg:pb-8">
         {/* Start Learning Panel */}
         <StartLearningPanel />
 
@@ -167,6 +200,65 @@ export default async function DashboardPage() {
           <div className="space-y-6">
             {/* Continue Learning */}
             <ContinueLearning lessons={data.continueLessons} />
+
+            {/* People With Similar Interests */}
+            <section id="people" className="scroll-mt-4 space-y-3">
+              <div className="flex items-center justify-between gap-2">
+                <h2 className="text-base font-semibold text-gray-900">
+                  People With Similar Interests
+                </h2>
+                <p className="text-xs text-gray-500">
+                  Discover learners who are exploring similar topics.
+                </p>
+              </div>
+              {data.discoveryUsers.length === 0 ? (
+                <p className="text-xs text-gray-500">
+                  As more learners add interests, you&apos;ll see suggested people
+                  here.
+                </p>
+              ) : (
+                <div className="mt-1 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                  {data.discoveryUsers.map((user) => (
+                    <UserCard key={user.id} user={user} />
+                  ))}
+                </div>
+              )}
+            </section>
+
+            {/* Recent Moments */}
+            <section id="moments" className="scroll-mt-4 space-y-3">
+              <div className="flex items-center justify-between gap-2">
+                <h2 className="text-base font-semibold text-gray-900">
+                  Recent Moments
+                </h2>
+                <p className="text-xs text-gray-500">
+                  Short updates from people across TutorFlow.
+                </p>
+              </div>
+
+              <MomentComposer />
+
+              {data.recentMoments.length === 0 ? (
+                <p className="text-xs text-gray-500">
+                  Be the first to share what you&apos;re learning or building.
+                </p>
+              ) : (
+                <div className="mt-2 space-y-3">
+                  {data.recentMoments.map((moment) => (
+                    <UserMoment
+                      key={moment.id}
+                      id={moment.id}
+                      userId={moment.userId}
+                      username={moment.username}
+                      avatarUrl={moment.avatarUrl}
+                      content={moment.content}
+                      createdAt={moment.createdAt}
+                      likesCount={moment.likesCount}
+                    />
+                  ))}
+                </div>
+              )}
+            </section>
 
             {/* Learning Tools */}
             <LearningTools />
@@ -183,6 +275,7 @@ export default async function DashboardPage() {
           </div>
         </div>
       </main>
+      <BottomNav />
     </div>
   );
 }
